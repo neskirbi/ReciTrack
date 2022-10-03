@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">ReciTrack</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Recitrack</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home"></string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+
+    
+
+    <string name="base_url">https://reci-track.mx/</string>
+    <string name="base_url_debug">http://192.168.0.101/recitrack/public/</string>
+    <string name="maps">AIzaSyBj4TLCtfP9pe9OS5TpFyBB9bWLoJgJtNg</string>
+
+</resources>

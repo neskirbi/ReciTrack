@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/drawable/cerrar.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/drawable/ic_arriba.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/drawable/menu_salir.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/drawable/refresh.xml" value="0.19166666666666668" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/activity_login_view.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/activity_portada.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/activity_principal_view.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/app_bar_menu_view.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/app_bar_principal_view.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/content_menu_view.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/content_principal_view.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/fragment_home.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/fragment_slideshow.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/nav_header_menu_view.xml" value="0.11956521739130435" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/layout/nav_header_principal_view.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/menu/activity_menu_view_drawer.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/menu/bottom_menu_aceptarcancelar.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/menu/menu_view.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/menu/navigation_rail_explorador.xml" value="0.1" />
+        <entry key="..\:/Users/CSMX/Documents/AndroidStudio/ReciTrack/app/src/main/res/menu/principal_view.xml" value="0.17552083333333332" />
+        <entry key="..\:/Users/CSMX/Documents/ReciTrack/app/src/main/res/layout/content_principal_view.xml" value="0.17552083333333332" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

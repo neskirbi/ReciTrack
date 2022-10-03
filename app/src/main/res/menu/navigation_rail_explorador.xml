@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--<item
+        android:id="@+id/back"
+        android:enabled="true"
+        android:icon="@drawable/ic_backbutton"
+        android:title="Regresar"/>
+    <item
+        android:id="@+id/refresh"
+        android:enabled="true"
+        android:icon="@drawable/refresh"
+        android:title="Limpiar"/>-->
+
+</menu>

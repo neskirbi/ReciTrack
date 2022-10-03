@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "710116689949",
+    "firebase_url": "https://recitrack-a87ef-default-rtdb.firebaseio.com",
+    "project_id": "recitrack-a87ef",
+    "storage_bucket": "recitrack-a87ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710116689949:android:41226d16b26ea1446f5ef4",
+        "android_client_info": {
+          "package_name": "com.recitrack.recitrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2KMN08YhQRHJm32SnvnZroAbtr_vpqiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "710116689949-7sd1od6qkr0btai2n81dl964toouuuq6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.recitrack.recitrackrecoleccion"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710116689949:android:d2c9a3e53b3939d26f5ef4",
+        "android_client_info": {
+          "package_name": "com.recitrack.recitrackrecoleccion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2KMN08YhQRHJm32SnvnZroAbtr_vpqiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "710116689949-7sd1od6qkr0btai2n81dl964toouuuq6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.recitrack.recitrackrecoleccion"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710116689949:android:2745d5c1c63f9a4b6f5ef4",
+        "android_client_info": {
+          "package_name": "com.recitrack.recitracktransporte"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2KMN08YhQRHJm32SnvnZroAbtr_vpqiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710116689949-dm9sglgjnvfavmiqa9ub0pbkr1qo3b6k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "710116689949-7sd1od6qkr0btai2n81dl964toouuuq6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.recitrack.recitrackrecoleccion"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single"
+        android:id="@+id/tipo0"
+        android:visible="false">
+        <!--<item
+                   android:id="@+id/nav_pedidos"
+                   android:icon="@drawable/ic_menu_olla"
+                   android:title="Transportar" />-->
+
+           </group>
+
+
+           <item
+               android:id="@+id/nav_salir"
+               android:icon="@drawable/menu_salir"
+               android:title="Salir" />
+       </menu>
