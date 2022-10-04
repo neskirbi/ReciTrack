@@ -376,27 +376,7 @@ public class Metodos {
 
     }
 
-    @SuppressLint("Range")
-    public String GetIdCita() {
-        String id="";
-        try {
-            DB base = new DB(context);
-            SQLiteDatabase db = base.getWritableDatabase();
 
-            Cursor c =  db.rawQuery("SELECT * from citas ",null);
-            c.moveToFirst();
-            if(c.getCount()>0){
-                c.moveToFirst();
-                id=c.getString(c.getColumnIndex("id"));
-            }
-            c.close();
-            db.close();
-        }catch (Exception e){
-
-            return "";
-        }
-        return id;
-    }
 
     public String BitmaptoBase64(Bitmap bitmap)
     {
@@ -478,6 +458,27 @@ public class Metodos {
     }
 
     public String GetIdCliente() {
+        String id="";
+        try {
+            DB base = new DB(context);
+            SQLiteDatabase db = base.getWritableDatabase();
+
+            Cursor c =  db.rawQuery("SELECT * from clientes ",null);
+            c.moveToFirst();
+            if(c.getCount()>0){
+                c.moveToFirst();
+                id=c.getString(c.getColumnIndex("id_cliente"));
+            }
+            c.close();
+            db.close();
+        }catch (Exception e){
+
+            return "";
+        }
+        return id;
+    }
+
+    public String GetId() {
         String id="";
         try {
             DB base = new DB(context);

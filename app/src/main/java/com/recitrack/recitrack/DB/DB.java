@@ -18,6 +18,7 @@ public class DB extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         Cliente = "CREATE TABLE IF NOT EXISTS  clientes(" +
                 "id text DEFAULT ''," +
+                "id_cliente text DEFAULT ''," +
                 "nombres text DEFAULT ''," +
                 "apellidos text DEFAULT ''," +
                 "mail text DEFAULT '')";

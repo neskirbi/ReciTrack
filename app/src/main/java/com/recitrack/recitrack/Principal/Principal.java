@@ -15,6 +15,7 @@ public interface Principal {
     }
 
     interface PrincipalPresenter{
+        void GetOrdenes();
         void GetRemisiones();
 
         void CierraDialogo();

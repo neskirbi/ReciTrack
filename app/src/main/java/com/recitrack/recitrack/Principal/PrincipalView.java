@@ -85,7 +85,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     Dialog dialog;
     ArrayList<String> ids = new ArrayList<>();
     ArrayList<MarkerOptions> marcadores=new ArrayList<>();
-    Double latp=0.0,lonp=0.0;
+    Double latp=0.0,lonp=0.0,lat=0.0,lon=0.0;
 
 
 
@@ -99,7 +99,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     BottomNavigationView nav_entregar;
     GoogleMap googleMap;
     private TextView nombres;
-    private boolean unavez=false;
 
 
     @Override
@@ -192,12 +191,14 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     }
 
     public void GetRemisiones(View view){
+        metodos.Vibrar(metodos.VibrarPush());
         principalPresenter.GetRemisiones();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        principalPresenter.GetOrdenes();
         metodos.PedirPermisoGPS(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapa);
@@ -262,8 +263,12 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                unavez=true;
-                PonerMarcadores();
+
+                if(lat!=0.0 && lon!=0.0){
+                    PonerMarcadores();
+                    CamaraPosition(lat,lon);
+                }
+
                 handler.postDelayed(this, 5000);
             }
         },1000);
@@ -291,10 +296,8 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
                 public void onMyLocationChange(Location arg0) {
 
 
-                    if(unavez){
-                        unavez=false;
-                        CamaraPosition(arg0.getLatitude(),arg0.getLongitude());
-                    }
+                    lat=arg0.getLatitude();
+                    lon=arg0.getLongitude();
 
 
 
@@ -382,24 +385,27 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         for(int i=0 ; datos.length()>i ; i++){
 
             try {
+                Log.i("Localizando","IniciarRastreo:"+datos.getJSONObject(i).getString("id"));
 
                 ids.add(i,datos.getJSONObject(i).getString("id"));
                 marcadores.add(i,null);
                 FirebaseDatabase firebaseDatabaseAvisos = FirebaseDatabase.getInstance();
-                DatabaseReference databaseReference = firebaseDatabaseAvisos.getReference("Remisiones/Traking/"+datos.getJSONObject(i).getString("id"));//Sala de chat
+                DatabaseReference databaseReference = firebaseDatabaseAvisos.getReference("Remisiones/Tracking/"+datos.getJSONObject(i).getString("id"));//Sala de chat
                 ChildEventListener listener;
                 listener=new ChildEventListener() {
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
+
                         Remision remision=snapshot.getValue(Remision.class);
                         Log.i("Localizando",remision.getLatitud()+"");
 
                         LatLng obra = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
-                        BitmapDescriptor icon=BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",200,200));
+                        BitmapDescriptor icon=BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",100,100));
 
                         MarkerOptions option=new MarkerOptions().position(obra)
-                                .title(remision.getObra())
+                                .title(remision.getObra()+"\n"+remision.getProducto())
+
                                 // below line is use to add custom marker on our map.
                                 .icon(icon);
 
@@ -412,14 +418,11 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
                         }
 
-
-
-
-
                     }
 
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
 
                     }
 
@@ -440,7 +443,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
                 };
                 databaseReference.addChildEventListener(listener);
             } catch (JSONException e) {
-
+                Log.i("Localizando",e.getMessage());
             }
         }
 
@@ -448,9 +451,11 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
     private void PonerMarcadores() {
         googleMap.clear();
-        Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size());
+
         for(int i = 0 ; i < marcadores.size() ; i++){
+
             if( marcadores.get(i)!=null){
+                Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size()+" lat:"+marcadores.get(i).getPosition().latitude+" lon:"+marcadores.get(i).getPosition().longitude);
                 googleMap.addMarker(marcadores.get(i));
                 //googleMap.moveCamera(CameraUpdateFactory.newLatLng(marcadores.get(i).getPosition()));
             }
@@ -461,5 +466,10 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(iconName, "drawable", getPackageName()));
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
         return resizedBitmap;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

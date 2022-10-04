@@ -30,7 +30,7 @@ public class PrincipalInteractor implements Principal.PrincipalInteractor {
 
     @Override
     public void GetRemisiones() {
-        principalPresenter.AbreDialogo();
+
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
@@ -45,7 +45,7 @@ public class PrincipalInteractor implements Principal.PrincipalInteractor {
         JsonArray jsonArray=new JsonArray();
         JsonObject jsonObject=new JsonObject();
         try {
-            jsonObject.addProperty("id",metodos.GetIdCliente());
+            jsonObject.addProperty("id",metodos.GetId());
             jsonArray.add(jsonObject);
             Call<JsonArray> call= null;
 
@@ -75,12 +75,12 @@ public class PrincipalInteractor implements Principal.PrincipalInteractor {
                             Log.i("Remisiones",e.getMessage()+"");
                         }
 
-                        principalPresenter.CierraDialogo();
+
 
                     }else{
                         Log.i("Remisiones"," \n\nCodigo:"+response.code()+" \n\nbody:"+body);
                         Toast.makeText(context, "Error de conexión "+response.code(), Toast.LENGTH_SHORT).show();
-                        principalPresenter.CierraDialogo();
+
                     }
 
                 }
@@ -89,7 +89,7 @@ public class PrincipalInteractor implements Principal.PrincipalInteractor {
                 public void onFailure(Call<JsonArray> call, Throwable t) {
                     Log.i("Response2",": Error"+t.getMessage());
                     Toast.makeText(context, "Error de conexión "+t.getMessage(), Toast.LENGTH_SHORT).show();
-                    principalPresenter.CierraDialogo();
+
                 }
             });
         } catch (Exception e) {

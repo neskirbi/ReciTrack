@@ -113,6 +113,7 @@ public class LoginInteractor implements Login.LoginInteractor {
 
         try {
             cliente.put("id", jsonObject.getString("id"));
+            cliente.put("id_cliente", jsonObject.getString("id_cliente"));
             cliente.put("nombres", jsonObject.getString("nombres"));
             cliente.put("apellidos", jsonObject.getString("apellidos"));
             cliente.put("mail", jsonObject.getString("mail"));
