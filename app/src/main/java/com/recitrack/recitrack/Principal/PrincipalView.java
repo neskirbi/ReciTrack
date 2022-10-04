@@ -2,12 +2,14 @@ package com.recitrack.recitrack.Principal;
 
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,9 +22,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
-import android.widget.AdapterView;
 
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,21 +33,24 @@ import com.google.android.gms.maps.GoogleMap;
 
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 import com.recitrack.recitrack.Login.Login;
+import com.recitrack.recitrack.Model.Remision;
 import com.recitrack.recitrack.databinding.ActivityMenuViewBinding;
 
-import com.recitrack.recitrack.Login.LoginView;
 import com.recitrack.recitrack.Metodos;
 
 import com.recitrack.recitrack.R;
@@ -55,6 +58,7 @@ import com.recitrack.recitrack.R;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import androidx.navigation.NavController;
@@ -64,8 +68,11 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 
 public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener, Principal.PrincipalView {
@@ -75,6 +82,10 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     NavigationView navigationView;
     Metodos metodos;
     Context context;
+    Dialog dialog;
+    ArrayList<String> ids = new ArrayList<>();
+    ArrayList<MarkerOptions> marcadores=new ArrayList<>();
+    Double latp=0.0,lonp=0.0;
 
 
 
@@ -88,6 +99,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     BottomNavigationView nav_entregar;
     GoogleMap googleMap;
     private TextView nombres;
+    private boolean unavez=false;
 
 
     @Override
@@ -100,7 +112,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
         context=this;
         metodos=new Metodos(context);
-        //principalPresenter= new PrincipalPresenter(this,context);
+        principalPresenter= new PrincipalPresenter(this,context);
         setSupportActionBar(binding.appBarMenuView.toolbar);
         /*binding.appBarMenuView.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,7 +141,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
         nombres=navigationView.getHeaderView(0).findViewById(R.id.nombre);
 
-        nombres.setText(metodos.GetNombres());
+        nombres.setText(metodos.GetNombres()+" "+metodos.GetApellidos());
 
         //Toast.makeText(this, "Version:"+metodos.GetVersion()+" Tipo: "+metodos.GetTipo(), Toast.LENGTH_SHORT).show();
 
@@ -164,10 +176,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
 
-
-
-
-
     }
 
 
@@ -181,6 +189,10 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     protected void onStart() {
         super.onStart();
 
+    }
+
+    public void GetRemisiones(View view){
+        principalPresenter.GetRemisiones();
     }
 
     @Override
@@ -246,15 +258,18 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
     @Override
     public void onMapReady(GoogleMap googleMapt) {
-        googleMap = googleMapt;
         final Handler handler= new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-
-                handler.postDelayed(this, 50000);
+                unavez=true;
+                PonerMarcadores();
+                handler.postDelayed(this, 5000);
             }
-        },0);
+        },1000);
+
+        googleMap = googleMapt;
+
 
         //if(lat.length()>0 && lon.length()>0)
         //googleMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon))).title(nombre));
@@ -276,14 +291,17 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
                 public void onMyLocationChange(Location arg0) {
 
 
+                    if(unavez){
+                        unavez=false;
                         CamaraPosition(arg0.getLatitude(),arg0.getLongitude());
+                    }
 
 
 
                 }
             });
         }
-
+        principalPresenter.GetRemisiones();
     }
 
     public void CargarMarcadoresObras(JsonArray viajes){
@@ -300,17 +318,37 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     }
 
     public void CamaraPosition(double latitude, double longitude){
+        latp=0.0;
+        lonp=0.0;
+        int conp=0;
+        if(marcadores.size()>0){
+            for(int i=0;i<marcadores.size();i++){
+                if(marcadores.get(i)!=null){
+                    latp=latp+marcadores.get(i).getPosition().latitude;
+                    lonp=lonp+marcadores.get(i).getPosition().longitude;
+                }else{
+                    conp++;
+                }
+            }
+            latp+=latitude;
+            lonp+=longitude;
+            latp=latp/(marcadores.size()+1-conp);
+            lonp=lonp/(marcadores.size()+1-conp);
 
-        if(latitude!=0.0 && longitude!=0.0 ){
-            LatLng ubicacion = new LatLng(latitude-0.0085, longitude);
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(ubicacion)      // Sets the center of the map to Mountain View
-                    .zoom(15)                   // Sets the zoom
-                    .bearing((float) angulo)                // Sets the orientation of the camera to east
-                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            if(latitude!=0.0 && longitude!=0.0 ){
+                //Si quiero desplasar para arriba el punto
+                // LatLng ubicacion = new LatLng(latitude-0.0085, longitude);
+                LatLng ubicacion = new LatLng(latp, lonp);
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(ubicacion)      // Sets the center of the map to Mountain View
+                        .zoom(12)                   // Sets the zoom
+                        .bearing((float) angulo)                // Sets the orientation of the camera to east
+                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            }
         }
+
 
     }
 
@@ -326,5 +364,102 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
 
+    @Override
+    public void AbreDialogo() {
+        dialog= ProgressDialog.show(context, "","Descargando la Información...", true);
+        dialog.setCancelable(true);
+    }
 
+    @Override
+    public void CierraDialogo() {
+
+        dialog.dismiss();
+    }
+
+    @Override
+    public void IniciarRastreo(JSONArray datos) {
+
+        for(int i=0 ; datos.length()>i ; i++){
+
+            try {
+
+                ids.add(i,datos.getJSONObject(i).getString("id"));
+                marcadores.add(i,null);
+                FirebaseDatabase firebaseDatabaseAvisos = FirebaseDatabase.getInstance();
+                DatabaseReference databaseReference = firebaseDatabaseAvisos.getReference("Remisiones/Traking/"+datos.getJSONObject(i).getString("id"));//Sala de chat
+                ChildEventListener listener;
+                listener=new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                        Remision remision=snapshot.getValue(Remision.class);
+                        Log.i("Localizando",remision.getLatitud()+"");
+
+                        LatLng obra = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
+                        BitmapDescriptor icon=BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",200,200));
+
+                        MarkerOptions option=new MarkerOptions().position(obra)
+                                .title(remision.getObra())
+                                // below line is use to add custom marker on our map.
+                                .icon(icon);
+
+                        for(int ii = 0 ; ii< ids.size() ;ii++){
+                            if(remision.getId().equals(ids.get(ii))){
+                                marcadores.remove(ii);
+                                marcadores.add(ii,option);
+                            }
+
+
+                        }
+
+
+
+
+
+                    }
+
+                    @Override
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                };
+                databaseReference.addChildEventListener(listener);
+            } catch (JSONException e) {
+
+            }
+        }
+
+    }
+
+    private void PonerMarcadores() {
+        googleMap.clear();
+        Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size());
+        for(int i = 0 ; i < marcadores.size() ; i++){
+            if( marcadores.get(i)!=null){
+                googleMap.addMarker(marcadores.get(i));
+                //googleMap.moveCamera(CameraUpdateFactory.newLatLng(marcadores.get(i).getPosition()));
+            }
+        }
+    }
+
+    public Bitmap resizeMapIcons(String iconName,int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+        return resizedBitmap;
+    }
 }

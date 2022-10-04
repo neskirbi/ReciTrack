@@ -297,6 +297,8 @@ public class Metodos {
     }
 
 
+
+
     public int GetTipo(){
         String tipo="";
         try {
@@ -325,7 +327,7 @@ public class Metodos {
             DB base = new DB(context);
             SQLiteDatabase db = base.getWritableDatabase();
 
-            Cursor c =  db.rawQuery("SELECT * from choferes ",null);
+            Cursor c =  db.rawQuery("SELECT * from clientes ",null);
             c.moveToFirst();
             if(c.getCount()>0){
                 c.moveToFirst();
@@ -461,6 +463,27 @@ public class Metodos {
             SQLiteDatabase db = base.getWritableDatabase();
 
             Cursor c =  db.rawQuery("SELECT * from remisiones ",null);
+            c.moveToFirst();
+            if(c.getCount()>0){
+                c.moveToFirst();
+                id=c.getString(c.getColumnIndex("id"));
+            }
+            c.close();
+            db.close();
+        }catch (Exception e){
+
+            return "";
+        }
+        return id;
+    }
+
+    public String GetIdCliente() {
+        String id="";
+        try {
+            DB base = new DB(context);
+            SQLiteDatabase db = base.getWritableDatabase();
+
+            Cursor c =  db.rawQuery("SELECT * from clientes ",null);
             c.moveToFirst();
             if(c.getCount()>0){
                 c.moveToFirst();

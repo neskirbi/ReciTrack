@@ -64,28 +64,28 @@ public class LoginInteractor implements Login.LoginInteractor {
                 public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
                     JsonArray body= response.body();
                     if(body!=null){
-                        Log.i("Login"," \n\nBody: "+body.toString());
+
                         try {
-                            Log.i("Login",body.get(0).toString());
+
                             JSONObject jsonObject=new JSONObject(body.get(0).toString());
                             if(Integer.parseInt(jsonObject.getString("status"))==1){
 
-                                Log.i("Login","1");
+
                                 GuardarCliente(jsonObject.getJSONObject("datos"));
                                 loginPresenter.LoginOk();
                             }else{
-                                Log.i("Login","0");
+
                                 loginPresenter.Error(jsonObject.getString("msn"));
                             }
 
                         }catch (Exception e){
-                            Log.i("Login",e.getMessage()+"");
+
                         }
 
                         loginPresenter.CierraDialogo();
 
                     }else{
-                        Log.i("Login"," \n\nCodigo:"+response.code()+" \n\nbody:"+body);
+
                         Toast.makeText(context, "Error de conexión "+response.code(), Toast.LENGTH_SHORT).show();
                         loginPresenter.CierraDialogo();
                     }
@@ -94,19 +94,19 @@ public class LoginInteractor implements Login.LoginInteractor {
 
                 @Override
                 public void onFailure(Call<JsonArray> call, Throwable t) {
-                    Log.i("Response2",": Error"+t.getMessage());
+
                     Toast.makeText(context, "Error de conexión "+t.getMessage(), Toast.LENGTH_SHORT).show();
                     loginPresenter.CierraDialogo();
                 }
             });
         } catch (Exception e) {
-            Log.i("Login",e.getMessage());
+
         }
 
     }
 
     private void GuardarCliente(JSONObject jsonObject) {
-        Log.i("Guardando",": Datos"+jsonObject);
+
         DB base = new DB(context);
         SQLiteDatabase db = base.getWritableDatabase();
         ContentValues cliente = new ContentValues();
@@ -122,7 +122,7 @@ public class LoginInteractor implements Login.LoginInteractor {
 
             db.insert("clientes", null, cliente);
         } catch (JSONException e) {
-            Log.i("guardando",e.getMessage()+"");
+
         }
 
         db.close();
