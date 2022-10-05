@@ -33,6 +33,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -83,9 +84,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     Metodos metodos;
     Context context;
     Dialog dialog;
-    ArrayList<String> ids = new ArrayList<>();
-    ArrayList<MarkerOptions> marcadores=new ArrayList<>();
-    Double latp=0.0,lonp=0.0,lat=0.0,lon=0.0;
 
 
 
@@ -98,7 +96,8 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     PrincipalPresenter principalPresenter;
     BottomNavigationView nav_entregar;
     GoogleMap googleMap;
-    private TextView nombres;
+    TextView nombres;
+    SupportMapFragment mapFragment;
 
 
     @Override
@@ -134,18 +133,13 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         //NavigationUI.setupWithNavController(navigationView, navController);
 
 
-
+        mapFragment = (SupportMapFragment) getSupportFragmentManager() .findFragmentById(R.id.mapa);
 
 
 
         nombres=navigationView.getHeaderView(0).findViewById(R.id.nombre);
 
         nombres.setText(metodos.GetNombres()+" "+metodos.GetApellidos());
-
-        //Toast.makeText(this, "Version:"+metodos.GetVersion()+" Tipo: "+metodos.GetTipo(), Toast.LENGTH_SHORT).show();
-
-
-
 
 
         //iniciando sensor rotacion
@@ -179,11 +173,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
 
-
-
-
-
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -192,6 +181,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
     public void GetRemisiones(View view){
         metodos.Vibrar(metodos.VibrarPush());
+
         principalPresenter.GetRemisiones();
     }
 
@@ -200,9 +190,8 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         super.onResume();
         principalPresenter.GetOrdenes();
         metodos.PedirPermisoGPS(this);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.mapa);
         mapFragment.getMapAsync(this);
+        principalPresenter.GetRemisiones();
 
 
     }
@@ -236,8 +225,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         Log.i("manu",""+id);
 
 
-
-
         if(R.id.nav_salir==id){
             metodos.CerrarSesion();
             startActivity(new Intent(context, Login.class));
@@ -258,53 +245,30 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
     @Override
-    public void onMapReady(GoogleMap googleMapt) {
+    public void onMapReady(GoogleMap Map) {
+        googleMap=Map;
+
+        //Verifico permisos
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        //Activa que funcione el puntero de mi posission
+        googleMap.setMyLocationEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+
         final Handler handler= new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
 
-                if(lat!=0.0 && lon!=0.0){
-                    PonerMarcadores();
-                    CamaraPosition(lat,lon);
-                }
+                principalPresenter.Marcar(googleMap);
 
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, 2000);
             }
-        },1000);
-
-        googleMap = googleMapt;
+        },0);
 
 
-        //if(lat.length()>0 && lon.length()>0)
-        //googleMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon))).title(nombre));
-
-        //Verifico permisos
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-
-        //Activa que funcione el puntero de mi posission
-        googleMap.setMyLocationEnabled(true);
-        // Me ubica cuando tiene lat y lon
-        if (googleMap != null) {
-
-
-            googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-
-                @Override
-                public void onMyLocationChange(Location arg0) {
-
-
-                    lat=arg0.getLatitude();
-                    lon=arg0.getLongitude();
-
-
-
-                }
-            });
-        }
-        principalPresenter.GetRemisiones();
     }
 
     public void CargarMarcadoresObras(JsonArray viajes){
@@ -320,40 +284,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
     }
 
-    public void CamaraPosition(double latitude, double longitude){
-        latp=0.0;
-        lonp=0.0;
-        int conp=0;
-        if(marcadores.size()>0){
-            for(int i=0;i<marcadores.size();i++){
-                if(marcadores.get(i)!=null){
-                    latp=latp+marcadores.get(i).getPosition().latitude;
-                    lonp=lonp+marcadores.get(i).getPosition().longitude;
-                }else{
-                    conp++;
-                }
-            }
-            latp+=latitude;
-            lonp+=longitude;
-            latp=latp/(marcadores.size()+1-conp);
-            lonp=lonp/(marcadores.size()+1-conp);
 
-            if(latitude!=0.0 && longitude!=0.0 ){
-                //Si quiero desplasar para arriba el punto
-                // LatLng ubicacion = new LatLng(latitude-0.0085, longitude);
-                LatLng ubicacion = new LatLng(latp, lonp);
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(ubicacion)      // Sets the center of the map to Mountain View
-                        .zoom(12)                   // Sets the zoom
-                        .bearing((float) angulo)                // Sets the orientation of the camera to east
-                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                        .build();                   // Creates a CameraPosition from the builder
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }
-        }
-
-
-    }
 
 
 
@@ -379,94 +310,11 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         dialog.dismiss();
     }
 
-    @Override
-    public void IniciarRastreo(JSONArray datos) {
-
-        for(int i=0 ; datos.length()>i ; i++){
-
-            try {
-                Log.i("Localizando","IniciarRastreo:"+datos.getJSONObject(i).getString("id"));
-
-                ids.add(i,datos.getJSONObject(i).getString("id"));
-                marcadores.add(i,null);
-                FirebaseDatabase firebaseDatabaseAvisos = FirebaseDatabase.getInstance();
-                DatabaseReference databaseReference = firebaseDatabaseAvisos.getReference("Remisiones/Tracking/"+datos.getJSONObject(i).getString("id"));//Sala de chat
-                ChildEventListener listener;
-                listener=new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
 
-                        Remision remision=snapshot.getValue(Remision.class);
-                        Log.i("Localizando",remision.getLatitud()+"");
-
-                        LatLng obra = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
-                        BitmapDescriptor icon=BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",100,100));
-
-                        MarkerOptions option=new MarkerOptions().position(obra)
-                                .title(remision.getObra()+"\n"+remision.getProducto())
-
-                                // below line is use to add custom marker on our map.
-                                .icon(icon);
-
-                        for(int ii = 0 ; ii< ids.size() ;ii++){
-                            if(remision.getId().equals(ids.get(ii))){
-                                marcadores.remove(ii);
-                                marcadores.add(ii,option);
-                            }
 
 
-                        }
 
-                    }
-
-                    @Override
-                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                };
-                databaseReference.addChildEventListener(listener);
-            } catch (JSONException e) {
-                Log.i("Localizando",e.getMessage());
-            }
-        }
-
-    }
-
-    private void PonerMarcadores() {
-        googleMap.clear();
-
-        for(int i = 0 ; i < marcadores.size() ; i++){
-
-            if( marcadores.get(i)!=null){
-                Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size()+" lat:"+marcadores.get(i).getPosition().latitude+" lon:"+marcadores.get(i).getPosition().longitude);
-                googleMap.addMarker(marcadores.get(i));
-                //googleMap.moveCamera(CameraUpdateFactory.newLatLng(marcadores.get(i).getPosition()));
-            }
-        }
-    }
-
-    public Bitmap resizeMapIcons(String iconName,int width, int height){
-        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-        return resizedBitmap;
-    }
 
     @Override
     public void onBackPressed() {

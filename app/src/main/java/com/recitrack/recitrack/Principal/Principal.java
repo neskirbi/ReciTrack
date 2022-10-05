@@ -1,9 +1,8 @@
 package com.recitrack.recitrack.Principal;
 
-import com.google.gson.JsonArray;
+import com.google.android.gms.maps.GoogleMap;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 public interface Principal {
     interface PrincipalView{
@@ -11,7 +10,7 @@ public interface Principal {
         void AbreDialogo();
         void CierraDialogo();
 
-        void IniciarRastreo(JSONArray datos);
+
     }
 
     interface PrincipalPresenter{
@@ -25,6 +24,10 @@ public interface Principal {
         void AbreDialogo();
 
         void IniciarRastreo(JSONArray datos);
+
+        void Marcar(GoogleMap googleMap);
+
+        void Focus(double arg0Latitude, double latitude, double longitude);
     }
 
     interface PrincipalInteractor{
