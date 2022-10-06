@@ -1,17 +1,29 @@
 package com.recitrack.recitrack.Principal;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
+import android.os.StrictMode;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,6 +40,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.recitrack.recitrack.Metodos;
 import com.recitrack.recitrack.Model.Remision;
+import com.recitrack.recitrack.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +61,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
     ArrayList<MarkerOptions> marcadores=new ArrayList<>();
     ArrayList<DatabaseReference> references=new ArrayList<>();
     ArrayList<ChildEventListener> listeners=new ArrayList<>();
+    ArrayList<String> descripciones=new ArrayList<>();
     GoogleMap googleMap;
 
     public PrincipalPresenter(PrincipalView principalView, Context context) {
@@ -104,9 +118,14 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         Log.i("Ordenes","Orden:"+snapshot.getValue());
         switch (snapshot.getValue()+""){
             case "1":
+                Log.i("Ordenes","Ordenando:"+snapshot.getValue());
                 principalInteractor.GetRemisiones();
-                break;
+            break;
+
+
         }
+
+
     }
 
     @Override
@@ -132,23 +151,42 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
     @Override
     public void IniciarRastreo(JSONArray datos) {
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        Log.i("QuieroQuitar ","revisar");
         Revisar(datos);
-        for(int i=0 ; datos.length()>i ; i++){
+        int tamini=ids.size();
+        for(int i=0 ; i < datos.length() ; i++){
 
             try {
-                Log.i("Localizando","IniciarRastreo:"+datos.getJSONObject(i).getString("id"));
-                if(ids.contains(datos.getJSONObject(i).getString("id"))){
+
+
+                if(ids.contains(datos.getJSONObject(i).getString("id")) ){
+                    Log.i("QuieroQuitar ","ids saltando"+ids.size()+":"+datos.getJSONObject(i).getString("id"));
                     continue;
                 }
+                if(1==Integer.parseInt( datos.getJSONObject(i).getString("confirmacion"))){
+                    Log.i("QuieroQuitar ","ids nullo"+ids.size()+":"+datos.getJSONObject(i).getString("id"));
+                    ids.add(null);
+                    marcadores.add(null);
+                    descripciones.add(null);
+                    listeners.add(null);
+                    references.add(null);
+                    continue;
 
-                ids.add(i,datos.getJSONObject(i).getString("id"));
-                marcadores.add(i,null);
+                }
+                Log.i("QuieroQuitar ","Agrega ids "+ids.size()+":"+datos.getJSONObject(i).getString("id"));
+                ids.add(datos.getJSONObject(i).getString("id"));
+                marcadores.add(null);
+                descripciones.add(datos.getJSONObject(i).getString("descripcion"));
 
 
-
+                String Tema="Remisiones/Tracking/"+datos.getJSONObject(i).getString("id");
+                Log.i("Localizando ","Tema:"+"Remisiones/Tracking/"+datos.getJSONObject(i).getString("id"));
                 FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-                DatabaseReference databaseReference = firebaseDatabase.getReference("Remisiones/Tracking/"+datos.getJSONObject(i).getString("id"));//Sala de chat
-                references.add(i,databaseReference);
+                DatabaseReference databaseReference = firebaseDatabase.getReference(Tema);//Sala de chat
+                references.add(databaseReference);
                 ChildEventListener listener;
 
                 listener=new ChildEventListener() {
@@ -157,6 +195,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
 
                         Remision remision=snapshot.getValue(Remision.class);
+                        Log.i("Localizando",remision.getId()+"");
                         Log.i("Localizando",remision.getLatitud()+"");
 
                         LatLng obra = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
@@ -198,36 +237,138 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
                     }
                 };
-                listeners.add(i,listener);
+                listeners.add(listener);
                 databaseReference.addChildEventListener(listener);
-                //databaseReference.removeValue();
-            } catch (JSONException e) {
-                Log.i("Localizando",e.getMessage());
+                Log.i("QuieroQuitar","IniciarRastreo:"+datos.getJSONObject(i).getString("id"));
+
+            } catch (Exception e) {
+                Log.i("QuieroQuitar","Error:"+e.getMessage());
             }
         }
     }
 
     private void Revisar(JSONArray datos) {
+        Log.i("QuieroQuitar ","entrando:");
         ArrayList<String> temp=new ArrayList<>();
         for(int i=0 ; datos.length()>i ; i++){
             try {
-                temp.add(i,datos.getJSONObject(i).getString("id"));
 
-            } catch (JSONException e) {
-                e.printStackTrace();
+                if(3==Integer.parseInt( datos.getJSONObject(i).getString("confirmacion"))){
+                    Log.i("QuieroQuitar ","cargando temp: "+i+" Confirmacion: "+Integer.parseInt( datos.getJSONObject(i).getString("confirmacion")));
+                    temp.add(datos.getJSONObject(i).getString("id"));
+                }
+
+
+            } catch (Exception e) {
+                Log.i("QuieroQuitar", "REvisarError"+e.getMessage());
             }
         }
 
-        for(int j=0;j<ids.size();j++){
-            if(!temp.contains(ids.get(j))){
+        for(int j=ids.size()-1;j>=0;j--){
+            Log.i("QuieroQuitar ","tamanioo:"+ids.size()+" index:"+ j);
+            if(ids.get(j)==null || !temp.contains(ids.get(j))){
+                Log.i("QuieroQuitar ","ids Quitando "+ids.size()+":"+ ids.get(j));
+                //NotificaEntega("Entregado",descripciones.get(j));
+                if(references.get(j)!=null && listeners.get(j)!=null)
                 references.get(j).removeEventListener(listeners.get(j));
                 ids.remove(j);
                 marcadores.remove(j);
                 references.remove(j);
                 listeners.remove(j);
+                descripciones.remove(j);
 
             }
         }
+    }
+
+
+    public void Notificar(String title, String body, int icono, Intent intent, int id) {
+
+/*
+
+        intent.putExtra("NoreiniciarServicio", 1);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        //
+        String NOTIFICATION_CHANNEL_ID = "Emergencia";
+
+        RemoteViews myRemoteView = new RemoteViews(context.getPackageName(), R.layout.imagen_notification);
+
+        Bitmap bit= BitmapFactory.decodeResource(context.getResources(),icono);
+        myRemoteView.setImageViewBitmap(R.id.icono,bit);
+        myRemoteView.setTextViewText(R.id.noti_titulo, title);
+        myRemoteView.setTextViewText(R.id.noti_body, body);
+
+
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
+        notificationBuilder
+                .setSmallIcon(R.drawable.logo)
+                .setAutoCancel(false)
+                .setVibrate(new long[]{1000, 1000, 500, 1000})
+                .setSound(defaultSoundUri)
+                .setPriority(1)
+                .setContentIntent(pendingIntent)
+                .setContentInfo("info")
+                .setContent(myRemoteView);
+
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        // Since android Oreo notification channel is needed.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                    "Notification",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            Uri sonido = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+
+            notificationChannel.setDescription("Descripcion");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.BLUE);
+            notificationChannel.setVibrationPattern(new long[]{1000, 1000, 500, 1000});
+            notificationChannel.enableLights(true);
+            notificationBuilder.setSound(sonido);
+            notificationBuilder.setPriority(1);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        notificationManager.notify(id, notificationBuilder.build());
+        */
+    }
+
+    private void NotificaEntega(String entregado, String s) {
+        Log.i("Notificando",entregado);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name =" Entregas Recitrack";
+            String description = "Notificaciones de entrega.";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(metodos.GetUuid(), name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+        String NOTIFICATION_CHANNEL_ID = "Entregas";
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context,NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.logo)
+                .setContentTitle(entregado)
+                .setContentText(s)
+                .setVibrate(new long[]{1000, 1000, 500, 1000})
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                //.setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(1, builder.build());
+
     }
 
     @Override
