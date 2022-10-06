@@ -16,11 +16,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.arch.core.internal.SafeIterableMap;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -32,6 +34,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -56,21 +59,28 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
     Double latp=0.0,lonp=0.0,lat=0.0,lon=0.0;
 
     private double angulo=0.0;
-    BitmapDescriptor icon;
+    BitmapDescriptor icon,iconobra;
     ArrayList<String> ids = new ArrayList<>();
     ArrayList<MarkerOptions> marcadores=new ArrayList<>();
     ArrayList<DatabaseReference> references=new ArrayList<>();
     ArrayList<ChildEventListener> listeners=new ArrayList<>();
     ArrayList<String> descripciones=new ArrayList<>();
     GoogleMap googleMap;
+    JSONArray obras;
 
     public PrincipalPresenter(PrincipalView principalView, Context context) {
         this.principalView=principalView;
         this.context=context;
         metodos=new Metodos(context);
         principalInteractor=new PrincipalInteractor(this,context);
+        DisplayMetrics metrics = new DisplayMetrics();
+        principalView.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        icon= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",100,100));
+        int tamcamiones= (int) Math.round(metrics.heightPixels*0.04);
+        int tamobras= (int) Math.round(metrics.heightPixels*0.09);
+        icon= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",tamcamiones,tamcamiones));
+        iconobra= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("obra1",tamobras,tamobras));
+        principalInteractor.GetObras();
     }
 
     @Override
@@ -133,6 +143,8 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
         principalInteractor.GetRemisiones();
     }
+
+
 
     @Override
     public void CierraDialogo() {
@@ -198,9 +210,9 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                         Log.i("Localizando",remision.getId()+"");
                         Log.i("Localizando",remision.getLatitud()+"");
 
-                        LatLng obra = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
+                        LatLng camion = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
 
-                        MarkerOptions option=new MarkerOptions().position(obra)
+                        MarkerOptions option=new MarkerOptions().position(camion)
                                 .title(remision.getObra()+"\n"+remision.getProducto())
                                 // below line is use to add custom marker on our map.
                                 .icon(icon);
@@ -402,6 +414,12 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         this.angulo=angulo;
     }
 
+    @Override
+    public void GuardaObras(JSONArray datos) {
+        obras=datos;
+    }
+
+
     public Bitmap resizeMapIcons(String iconName, int width, int height){
         Bitmap imageBitmap = BitmapFactory.decodeResource(context.getResources(),context.getResources().getIdentifier(iconName, "drawable", context.getPackageName()));
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
@@ -412,27 +430,68 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         latp=0.0;
         lonp=0.0;
         int conp=0;
+
+
         if(marcadores.size()>0){
             for(int i=0;i<marcadores.size();i++){
                 if(marcadores.get(i)!=null){
+
                     latp=latp+marcadores.get(i).getPosition().latitude;
                     lonp=lonp+marcadores.get(i).getPosition().longitude;
                 }else{
                     conp++;
                 }
             }
-            latp+=latitude;
-            lonp+=longitude;
-            latp=latp/(marcadores.size()+1-conp);
-            lonp=lonp/(marcadores.size()+1-conp);
+            for(int i=0;i<obras.length();i++){
+                try {
 
-            if(latitude!=0.0 && longitude!=0.0 ){
+                    latp=latp+Double.parseDouble(obras.getJSONObject(i).getString("latitud"));
+                    lonp=lonp+Double.parseDouble(obras.getJSONObject(i).getString("longitud"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            //latp+=latitude;
+            //lonp+=longitude;
+            latp=latp/(marcadores.size()+obras.length()-conp);
+            lonp=lonp/(marcadores.size()+obras.length()-conp);
+
+            Log.i("Marcando","Lat: "+latp+" lon:"+lonp);
+
+
+
+
+            //if(obras.length()>0 && marcadores.size()>0){
+                if(false){
+
+                try {
+                    LatLngBounds australiaBounds = null;
+                    australiaBounds = new LatLngBounds(
+                            new LatLng(Double.parseDouble(obras.getJSONObject(0).getString("latitud")), +Double.parseDouble(obras.getJSONObject(0).getString("longitud"))),
+                            new LatLng(marcadores.get(0).getPosition().latitude, marcadores.get(0).getPosition().longitude)  );
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(australiaBounds.getCenter(), 10));
+                } catch (Exception e) {
+                    LatLngBounds australiaBounds = null;
+                    try {
+                        australiaBounds = new LatLngBounds(
+
+                                new LatLng(marcadores.get(0).getPosition().latitude, marcadores.get(0).getPosition().longitude),
+                                new LatLng(Double.parseDouble(obras.getJSONObject(0).getString("latitud")), +Double.parseDouble(obras.getJSONObject(0).getString("longitud"))));
+                    } catch (Exception jsonException) {
+                        jsonException.printStackTrace();
+                    }
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(australiaBounds.getCenter(), 10));
+                }
+
+            }
+            else{
                 //Si quiero desplasar para arriba el punto
                 // LatLng ubicacion = new LatLng(latitude-0.0085, longitude);
                 LatLng ubicacion = new LatLng(latp, lonp);
                 CameraPosition cameraPosition = new CameraPosition.Builder()
                         .target(ubicacion)      // Sets the center of the map to Mountain View
-                        .zoom(12)                   // Sets the zoom
+                        .zoom(11)                   // Sets the zoom
                         .bearing((float) angulo)                // Sets the orientation of the camera to east
                         .tilt(30)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
@@ -445,6 +504,28 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
     private void PonerMarcadores() {
         googleMap.clear();
+
+
+        if(obras!=null){
+            for(int i = 0 ; i < obras.length() ; i++){
+
+                try {
+                    LatLng obra = null;
+                    obra = new LatLng(Double.parseDouble(obras.getJSONObject(i).getString("latitud")), Double.parseDouble(obras.getJSONObject(i).getString("longitud")));
+                    MarkerOptions option=new MarkerOptions().position(obra)
+                            .title(obras.getJSONObject(i).getString("obra"))
+                            // below line is use to add custom marker on our map.
+                            .icon(iconobra);
+                    googleMap.addMarker(option);
+                    Log.i("GetObras","Obra: "+obras.getJSONObject(i).getString("obra"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }
+
 
         for(int i = 0 ; i < marcadores.size() ; i++){
 

@@ -18,6 +18,7 @@ import android.location.Location;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -98,6 +99,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     GoogleMap googleMap;
     TextView nombres;
     SupportMapFragment mapFragment;
+    int pancho=0,palto=0;
 
 
     @Override
@@ -134,6 +136,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager() .findFragmentById(R.id.mapa);
+
 
 
 
@@ -256,6 +259,12 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         googleMap.setMyLocationEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+
+        Log.i("tamaniopantalla",palto+"");
+        googleMap.setPadding(25,25,25, (int) Math.round(metrics.heightPixels*0.1));
 
         final Handler handler= new Handler();
         handler.postDelayed(new Runnable() {
@@ -287,10 +296,6 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
 
 
-
-
-
-
     @Override
     public void Error(String error) {
         Toast.makeText(context, error, Toast.LENGTH_SHORT).show();
@@ -318,6 +323,7 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        //super.onBackPressed();
+        //return;
     }
 }

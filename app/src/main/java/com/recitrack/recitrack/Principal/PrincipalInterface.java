@@ -13,4 +13,8 @@ public interface PrincipalInterface {
     @Headers(BuildConfig.APP_KEY)
     @POST("api/Remisiones")
     Call<JsonArray> Remisiones(@Body JsonArray jsonArray);
+
+    @Headers(BuildConfig.APP_KEY)
+    @POST("api/GetObras")
+    Call<JsonArray> GetObras(@Body JsonArray jsonArray);
 }
