@@ -1,16 +1,13 @@
 package com.recitrack.recitrack.Principal;
 
-import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -22,19 +19,16 @@ import android.widget.RemoteViews;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.arch.core.internal.SafeIterableMap;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -61,12 +55,19 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
     private double angulo=0.0;
     BitmapDescriptor icon,iconobra;
     ArrayList<String> ids = new ArrayList<>();
+
+    ArrayList<MarkerOptions> marcadoresseted=new ArrayList<>();
+
     ArrayList<MarkerOptions> marcadores=new ArrayList<>();
     ArrayList<DatabaseReference> references=new ArrayList<>();
-    ArrayList<ChildEventListener> listeners=new ArrayList<>();
+    ArrayList<Listener> listeners=new ArrayList<>();
     ArrayList<String> descripciones=new ArrayList<>();
     GoogleMap googleMap;
     JSONArray obras;
+    int pantallaw=0,pantallah= 0;
+    private boolean NoMover=false;
+    Handler handlermap=null;
+    Runnable run;
 
     public PrincipalPresenter(PrincipalView principalView, Context context) {
         this.principalView=principalView;
@@ -76,8 +77,10 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         DisplayMetrics metrics = new DisplayMetrics();
         principalView.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        int tamcamiones= (int) Math.round(metrics.heightPixels*0.04);
-        int tamobras= (int) Math.round(metrics.heightPixels*0.09);
+        pantallah=metrics.heightPixels;
+        pantallaw=metrics.widthPixels;
+        int tamcamiones= (int) Math.round(pantallah*0.04);
+        int tamobras= (int) Math.round(pantallah*0.09);
         icon= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",tamcamiones,tamcamiones));
         iconobra= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("obra1",tamobras,tamobras));
         principalInteractor.GetObras();
@@ -199,9 +202,18 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                 FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
                 DatabaseReference databaseReference = firebaseDatabase.getReference(Tema);//Sala de chat
                 references.add(databaseReference);
-                ChildEventListener listener;
+                Listener listener;
 
-                listener=new ChildEventListener() {
+                listener=new Listener() {
+                    public MarkerOptions marker=new MarkerOptions().position(new LatLng(0.0,0.0))
+                            .draggable(true)
+                            .title("remision.getProducto()")
+
+                            // below line is use to add custom marker on our map.
+                            .icon(icon);
+                    public Marker markert=null;
+                    boolean Primera=true;
+                    String descripcion;
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
@@ -210,19 +222,25 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                         Log.i("Localizando",remision.getId()+"");
                         Log.i("Localizando",remision.getLatitud()+"");
 
-                        LatLng camion = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
+                        LatLng posicion = new LatLng(Double.parseDouble(remision.getLatitud()), Double.parseDouble(remision.getLongitud()));
 
-                        MarkerOptions option=new MarkerOptions().position(camion)
-                                .title(remision.getObra()+"\n"+remision.getProducto())
-                                // below line is use to add custom marker on our map.
-                                .icon(icon);
+                        Log.i("Marcador",remision.getProducto());
+                        marker.position(posicion);
+                        marker.title(remision.getProducto());
+
+                        descripcion=remision.getProducto();
+                        if(Primera){
+                            Primera=false;
+                            markert = googleMap.addMarker(marker);
+                        }else{
+                            markert.setPosition(posicion);
+                        }
 
                         for(int ii = 0 ; ii< ids.size() ;ii++){
                             if(remision.getId().equals(ids.get(ii))){
                                 marcadores.remove(ii);
-                                marcadores.add(ii,option);
+                                marcadores.add(ii,marker);
                             }
-
 
                         }
 
@@ -247,6 +265,17 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
 
+                    }
+
+                    @Override
+                    public void QuitarMarcador() {
+                        markert.remove();
+                    }
+
+                    @Override
+                    public String Descripcion() {
+
+                        return descripcion;
                     }
                 };
                 listeners.add(listener);
@@ -281,8 +310,11 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
             if(ids.get(j)==null || !temp.contains(ids.get(j))){
                 Log.i("QuieroQuitar ","ids Quitando "+ids.size()+":"+ ids.get(j));
                 //NotificaEntega("Entregado",descripciones.get(j));
-                if(references.get(j)!=null && listeners.get(j)!=null)
-                references.get(j).removeEventListener(listeners.get(j));
+                if(references.get(j)!=null && listeners.get(j)!=null){
+                    Notificar("Entrega Completa",listeners.get(j).Descripcion());
+                    listeners.get(j).QuitarMarcador();
+                    references.get(j).removeEventListener(listeners.get(j));
+                }
                 ids.remove(j);
                 marcadores.remove(j);
                 references.remove(j);
@@ -294,25 +326,16 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
     }
 
 
-    public void Notificar(String title, String body, int icono, Intent intent, int id) {
+    public void Notificar(String title, String body) {
 
-/*
 
-        intent.putExtra("NoreiniciarServicio", 1);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         //
         String NOTIFICATION_CHANNEL_ID = "Emergencia";
 
-        RemoteViews myRemoteView = new RemoteViews(context.getPackageName(), R.layout.imagen_notification);
 
-        Bitmap bit= BitmapFactory.decodeResource(context.getResources(),icono);
-        myRemoteView.setImageViewBitmap(R.id.icono,bit);
-        myRemoteView.setTextViewText(R.id.noti_titulo, title);
-        myRemoteView.setTextViewText(R.id.noti_body, body);
 
 
         NotificationCompat.Builder notificationBuilder =
@@ -323,9 +346,9 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                 .setVibrate(new long[]{1000, 1000, 500, 1000})
                 .setSound(defaultSoundUri)
                 .setPriority(1)
-                .setContentIntent(pendingIntent)
-                .setContentInfo("info")
-                .setContent(myRemoteView);
+                .setContentTitle(title)
+                .setContentText(body)
+                .setContentInfo("info");
 
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -348,14 +371,14 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
             notificationManager.createNotificationChannel(notificationChannel);
         }
 
-        notificationManager.notify(id, notificationBuilder.build());
-        */
+        notificationManager.notify(1, notificationBuilder.build());
+
     }
 
     private void NotificaEntega(String entregado, String s) {
         Log.i("Notificando",entregado);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name =" Entregas Recitrack";
+            CharSequence name ="Entregas Recitrack";
             String description = "Notificaciones de entrega.";
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(metodos.GetUuid(), name, importance);
@@ -365,7 +388,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-        String NOTIFICATION_CHANNEL_ID = "Entregas";
+        String NOTIFICATION_CHANNEL_ID = "Entregas Recitrack";
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context,NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.logo)
                 .setContentTitle(entregado)
@@ -389,19 +412,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         // Me ubica cuando tiene lat y lon
         if (googleMap != null) {
 
-            googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-                @Override
-                public void onMyLocationChange(Location arg0) {
-
-                    lat=arg0.getLatitude();
-                    lon=arg0.getLongitude();
-                    Log.i("Moviendo","Lat:"+lat+" Lon:"+lon);
-
-
-                }
-            });
-            CamaraPosition(lat,lon);
-            PonerMarcadores();
+            CamaraPosition();
         }
 
 
@@ -416,7 +427,32 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
     @Override
     public void GuardaObras(JSONArray datos) {
+
+
         obras=datos;
+        PonerMarcadoresObras();
+    }
+
+    @Override
+    public void NoMoverMapa() {
+        NoMover=true;
+        handlermap= new Handler();
+        run=new Runnable() {
+            @Override
+            public void run() {
+
+                NoMover=false;
+
+                //handler.postDelayed(this, 2000);
+            }
+        };
+        handlermap.postDelayed(run,30000);
+    }
+
+    @Override
+    public void NoMoverMapaStop() {
+        if(handlermap!=null)
+            handlermap.removeCallbacks(run);
     }
 
 
@@ -426,84 +462,51 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         return resizedBitmap;
     }
 
-    public void CamaraPosition(double latitude, double longitude){
-        latp=0.0;
-        lonp=0.0;
-        int conp=0;
+    public void CamaraPosition(){
 
+       if(NoMover){
+           return;
+       }
 
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
         if(marcadores.size()>0){
             for(int i=0;i<marcadores.size();i++){
                 if(marcadores.get(i)!=null){
+                    builder.include(marcadores.get(i).getPosition());
 
-                    latp=latp+marcadores.get(i).getPosition().latitude;
-                    lonp=lonp+marcadores.get(i).getPosition().longitude;
                 }else{
-                    conp++;
+
                 }
             }
-            for(int i=0;i<obras.length();i++){
-                try {
+            if(obras!=null){
+                for(int i=0;i<obras.length();i++){
+                    try {
+                        builder.include(new LatLng(Double.parseDouble(obras.getJSONObject(i).getString("latitud")),Double.parseDouble(obras.getJSONObject(i).getString("longitud"))));
 
-                    latp=latp+Double.parseDouble(obras.getJSONObject(i).getString("latitud"));
-                    lonp=lonp+Double.parseDouble(obras.getJSONObject(i).getString("longitud"));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
                 }
-
             }
-            //latp+=latitude;
-            //lonp+=longitude;
-            latp=latp/(marcadores.size()+obras.length()-conp);
-            lonp=lonp/(marcadores.size()+obras.length()-conp);
+
 
             Log.i("Marcando","Lat: "+latp+" lon:"+lonp);
 
 
+            LatLngBounds bounds = builder.build();
 
 
-            //if(obras.length()>0 && marcadores.size()>0){
-                if(false){
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, (int) Math.round(pantallah*0.05)));
 
-                try {
-                    LatLngBounds australiaBounds = null;
-                    australiaBounds = new LatLngBounds(
-                            new LatLng(Double.parseDouble(obras.getJSONObject(0).getString("latitud")), +Double.parseDouble(obras.getJSONObject(0).getString("longitud"))),
-                            new LatLng(marcadores.get(0).getPosition().latitude, marcadores.get(0).getPosition().longitude)  );
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(australiaBounds.getCenter(), 10));
-                } catch (Exception e) {
-                    LatLngBounds australiaBounds = null;
-                    try {
-                        australiaBounds = new LatLngBounds(
 
-                                new LatLng(marcadores.get(0).getPosition().latitude, marcadores.get(0).getPosition().longitude),
-                                new LatLng(Double.parseDouble(obras.getJSONObject(0).getString("latitud")), +Double.parseDouble(obras.getJSONObject(0).getString("longitud"))));
-                    } catch (Exception jsonException) {
-                        jsonException.printStackTrace();
-                    }
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(australiaBounds.getCenter(), 10));
-                }
-
-            }
-            else{
-                //Si quiero desplasar para arriba el punto
-                // LatLng ubicacion = new LatLng(latitude-0.0085, longitude);
-                LatLng ubicacion = new LatLng(latp, lonp);
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(ubicacion)      // Sets the center of the map to Mountain View
-                        .zoom(11)                   // Sets the zoom
-                        .bearing((float) angulo)                // Sets the orientation of the camera to east
-                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                        .build();                   // Creates a CameraPosition from the builder
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }
         }
 
 
     }
 
-    private void PonerMarcadores() {
-        googleMap.clear();
+    private void PonerMarcadoresObras() {
+        //googleMap.clear();
 
 
         if(obras!=null){
@@ -531,9 +534,43 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
             if( marcadores.get(i)!=null){
                 Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size()+" lat:"+marcadores.get(i).getPosition().latitude+" lon:"+marcadores.get(i).getPosition().longitude);
-                googleMap.addMarker(marcadores.get(i));
+                //googleMap.addMarker(marcadores.get(i));
                 //googleMap.moveCamera(CameraUpdateFactory.newLatLng(marcadores.get(i).getPosition()));
             }
         }
+    }
+}
+
+abstract class Listener implements ChildEventListener {
+    @Override
+    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+    }
+
+    @Override
+    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+    }
+
+    @Override
+    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+    }
+
+    @Override
+    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+    }
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+
+    }
+
+    public void QuitarMarcador(){}
+
+
+    public String Descripcion(){
+        return null;
     }
 }

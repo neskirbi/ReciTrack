@@ -31,6 +31,9 @@ public interface Principal {
 
         void GuardaObras(JSONArray datos);
 
+        void NoMoverMapa();
+
+        void NoMoverMapaStop();
     }
 
     interface PrincipalInteractor{

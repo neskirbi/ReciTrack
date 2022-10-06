@@ -39,6 +39,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -77,7 +78,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallback , NavigationView.OnNavigationItemSelectedListener, Principal.PrincipalView {
+public class PrincipalView extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, Principal.PrincipalView, GoogleMap.OnMarkerClickListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMenuViewBinding binding;
@@ -259,6 +260,8 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
         googleMap.setMyLocationEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
+        googleMap.setOnMarkerClickListener(this);
+
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
@@ -325,5 +328,13 @@ public class PrincipalView extends AppCompatActivity  implements OnMapReadyCallb
     public void onBackPressed() {
         //super.onBackPressed();
         //return;
+    }
+
+    @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        Log.i("MapClick",marker.getTitle());
+        principalPresenter.NoMoverMapaStop();
+        principalPresenter.NoMoverMapa();
+        return false;
     }
 }

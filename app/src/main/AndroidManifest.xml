@@ -28,11 +28,13 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/maps" />
+            android:value="@string/maps"/>
 
         <activity
             android:name=".Portada"
-            android:exported="true" >
+            android:exported="true"
+            android:theme="@style/Theme.ReciTrack.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
