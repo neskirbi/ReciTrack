@@ -68,9 +68,9 @@ public class LoginInteractor implements Login.LoginInteractor {
                         try {
 
                             JSONObject jsonObject=new JSONObject(body.get(0).toString());
+
+                            Log.i("Login",body+"");
                             if(Integer.parseInt(jsonObject.getString("status"))==1){
-
-
                                 GuardarCliente(jsonObject.getJSONObject("datos"));
                                 loginPresenter.LoginOk();
                             }else{

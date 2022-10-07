@@ -51,6 +51,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.JsonArray;
 
 import com.recitrack.recitrack.Login.Login;
+import com.recitrack.recitrack.Login.LoginView;
 import com.recitrack.recitrack.Model.Remision;
 import com.recitrack.recitrack.databinding.ActivityMenuViewBinding;
 
@@ -192,10 +193,8 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onResume() {
         super.onResume();
-        principalPresenter.GetOrdenes();
         metodos.PedirPermisoGPS(this);
         mapFragment.getMapAsync(this);
-        principalPresenter.GetRemisiones();
 
 
     }
@@ -231,7 +230,7 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
 
         if(R.id.nav_salir==id){
             metodos.CerrarSesion();
-            startActivity(new Intent(context, Login.class));
+            startActivity(new Intent(context, LoginView.class));
 
         }
 
@@ -252,6 +251,12 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     public void onMapReady(GoogleMap Map) {
         googleMap=Map;
 
+        //Puse esto aca por que si no carga primero el mapa mandara error
+        principalPresenter.GetOrdenes();
+        principalPresenter.GetObras();
+        principalPresenter.Marcar(googleMap);
+        principalPresenter.GetRemisiones();
+
         //Verifico permisos
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -269,30 +274,8 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
         Log.i("tamaniopantalla",palto+"");
         googleMap.setPadding(25,25,25, (int) Math.round(metrics.heightPixels*0.1));
 
-        final Handler handler= new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                principalPresenter.Marcar(googleMap);
-
-                handler.postDelayed(this, 2000);
-            }
-        },0);
 
 
-    }
-
-    public void CargarMarcadoresObras(JsonArray viajes){
-        for(int i=0 ; i < viajes.size() ; i++){
-            try {
-                JSONObject jsonObject=new JSONObject(viajes.get(i).toString());
-                googleMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(jsonObject.get("latitud").toString()), Double.parseDouble(jsonObject.get("longitud").toString()))).title(jsonObject.get("obra").toString()));
-                //Toast.makeText(context, ""+jsonObject.get("pedidos"), Toast.LENGTH_SHORT).show();
-            } catch (JSONException e) {
-                Toast.makeText(context, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
 
     }
 

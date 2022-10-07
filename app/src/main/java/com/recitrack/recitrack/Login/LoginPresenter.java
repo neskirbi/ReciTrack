@@ -25,7 +25,7 @@ public class LoginPresenter implements Login.LoginPresenter {
 
     @Override
     public void Error(String msn) {
-
+        loginView.Error(msn);
     }
 
     @Override

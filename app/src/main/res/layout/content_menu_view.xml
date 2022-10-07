@@ -43,7 +43,7 @@
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-
+        android:id="@+id/GetRem"
         android:onClick="GetRemisiones"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

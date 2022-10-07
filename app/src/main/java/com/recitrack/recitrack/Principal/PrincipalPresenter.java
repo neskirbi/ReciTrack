@@ -52,18 +52,17 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
     Double latp=0.0,lonp=0.0,lat=0.0,lon=0.0;
 
-    private double angulo=0.0;
+
     BitmapDescriptor icon,iconobra;
     ArrayList<String> ids = new ArrayList<>();
 
-    ArrayList<MarkerOptions> marcadoresseted=new ArrayList<>();
 
     ArrayList<MarkerOptions> marcadores=new ArrayList<>();
     ArrayList<DatabaseReference> references=new ArrayList<>();
     ArrayList<Listener> listeners=new ArrayList<>();
     ArrayList<String> descripciones=new ArrayList<>();
     GoogleMap googleMap;
-    JSONArray obras;
+    JSONArray obras=new JSONArray();
     int pantallaw=0,pantallah= 0;
     private boolean NoMover=false;
     Handler handlermap=null;
@@ -83,7 +82,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         int tamobras= (int) Math.round(pantallah*0.09);
         icon= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("olla",tamcamiones,tamcamiones));
         iconobra= BitmapDescriptorFactory.fromBitmap(resizeMapIcons("obra1",tamobras,tamobras));
-        principalInteractor.GetObras();
+
     }
 
     @Override
@@ -144,7 +143,15 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
     @Override
     public void GetRemisiones() {
 
+
         principalInteractor.GetRemisiones();
+    }
+
+    @Override
+    public void GetObras() {
+
+        principalInteractor.GetObras();
+
     }
 
 
@@ -192,6 +199,8 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
                 }
                 Log.i("QuieroQuitar ","Agrega ids "+ids.size()+":"+datos.getJSONObject(i).getString("id"));
+
+                Notificar("Pedido en Camino",datos.getJSONObject(i).getString("descripcion")+"\n"+datos.getJSONObject(i).getString("obra_domicilio"));
                 ids.add(datos.getJSONObject(i).getString("id"));
                 marcadores.add(null);
                 descripciones.add(datos.getJSONObject(i).getString("descripcion"));
@@ -213,7 +222,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                             .icon(icon);
                     public Marker markert=null;
                     boolean Primera=true;
-                    String descripcion;
+                    String descripcion="";
                     @Override
                     public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
@@ -269,6 +278,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
                     @Override
                     public void QuitarMarcador() {
+                        if(markert!=null)
                         markert.remove();
                     }
 
@@ -341,13 +351,15 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
         notificationBuilder
-                .setSmallIcon(R.drawable.logo)
-                .setAutoCancel(false)
+                .setSmallIcon(R.drawable.icono)
                 .setVibrate(new long[]{1000, 1000, 500, 1000})
                 .setSound(defaultSoundUri)
                 .setPriority(1)
                 .setContentTitle(title)
                 .setContentText(body)
+                .setAutoCancel(true)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(body))
                 .setContentInfo("info");
 
         NotificationManager notificationManager =
@@ -371,7 +383,8 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
             notificationManager.createNotificationChannel(notificationChannel);
         }
 
-        notificationManager.notify(1, notificationBuilder.build());
+
+        notificationManager.notify(metodos.GetAleatorio(), notificationBuilder.build());
 
     }
 
@@ -411,19 +424,23 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         googleMap=Map;
         // Me ubica cuando tiene lat y lon
         if (googleMap != null) {
+            final Handler handler= new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
 
-            CamaraPosition();
+                    CamaraPosition();
+
+                    handler.postDelayed(this, 2000);
+                }
+            },0);
+
+
         }
 
 
     }
 
-    @Override
-    public void Focus(double latitude, double longitude, double angulo) {
-        lat=latitude;
-        lon=longitude;
-        this.angulo=angulo;
-    }
 
     @Override
     public void GuardaObras(JSONArray datos) {
@@ -469,38 +486,29 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
        }
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        if(marcadores.size()>0){
-            for(int i=0;i<marcadores.size();i++){
-                if(marcadores.get(i)!=null){
-                    builder.include(marcadores.get(i).getPosition());
-
-                }else{
-
-                }
+        for(int i=0;i<marcadores.size();i++){
+            if(marcadores.get(i)!=null){
+                builder.include(marcadores.get(i).getPosition());
             }
-            if(obras!=null){
-                for(int i=0;i<obras.length();i++){
-                    try {
-                        builder.include(new LatLng(Double.parseDouble(obras.getJSONObject(i).getString("latitud")),Double.parseDouble(obras.getJSONObject(i).getString("longitud"))));
+        }
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
+        for(int i=0;i<obras.length();i++){
+            try {
+                builder.include(new LatLng(Double.parseDouble(obras.getJSONObject(i).getString("latitud")),Double.parseDouble(obras.getJSONObject(i).getString("longitud"))));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
-
-            Log.i("Marcando","Lat: "+latp+" lon:"+lonp);
-
-
-            LatLngBounds bounds = builder.build();
-
-
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, (int) Math.round(pantallah*0.05)));
-
 
         }
+
+
+        if(obras.length()>0 || marcadores.size()>0){
+            Log.i("Marcando","Lat: "+latp+" lon:"+lonp);
+            LatLngBounds bounds = builder.build();
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, (int) Math.round(pantallah*0.05)));
+
+        }
+
 
 
     }

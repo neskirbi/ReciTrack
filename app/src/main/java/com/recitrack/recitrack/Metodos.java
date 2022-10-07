@@ -147,7 +147,28 @@ public class Metodos {
 
             int location = context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION);
 
+            if (location == PackageManager.PERMISSION_GRANTED ) {
 
+
+            } else {
+                MaterialAlertDialogBuilder builder=new MaterialAlertDialogBuilder(context);
+                builder.setTitle("GPS");
+                builder.setMessage("Recitrack Transporte recolecta la localización para el seguimiento del transporte de los residuos de la construcción cuando la aplicación se encuentra abierta o cerrada.");
+                builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        view.requestPermissions(perms, permsRequestCode);
+                    }
+                });
+                builder.setNegativeButton("Rechazar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Vibrar(VibrarPush());
+                    }
+                });
+                builder.show();
+
+            }
 
 
 
@@ -442,5 +463,9 @@ public class Metodos {
             return "";
         }
         return id;
+    }
+
+    public int GetAleatorio() {
+        return (int) Math.round(Math.random()*10000);
     }
 }

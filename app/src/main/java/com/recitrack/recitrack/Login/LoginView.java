@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,7 +40,7 @@ public class LoginView extends AppCompatActivity implements Login.LoginView {
         mail=findViewById(R.id.mail);
         pass=findViewById(R.id.pass);
         if(BuildConfig.DEBUG){
-            mail.setText("arturo.rubinstein@pieldeconcreto.com");
+            //mail.setText("gerardo@csmx.mx");
         }
     }
 
@@ -53,7 +54,7 @@ public class LoginView extends AppCompatActivity implements Login.LoginView {
 
     @Override
     public void Error(String msn) {
-
+        Toast.makeText(context, ""+msn, Toast.LENGTH_SHORT).show();
     }
 
     @Override

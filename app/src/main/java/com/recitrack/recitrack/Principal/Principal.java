@@ -17,6 +17,8 @@ public interface Principal {
         void GetOrdenes();
         void GetRemisiones();
 
+        void GetObras();
+
         void CierraDialogo();
 
         void Error(String msn);
@@ -27,7 +29,6 @@ public interface Principal {
 
         void Marcar(GoogleMap googleMap);
 
-        void Focus(double arg0Latitude, double latitude, double longitude);
 
         void GuardaObras(JSONArray datos);
 
