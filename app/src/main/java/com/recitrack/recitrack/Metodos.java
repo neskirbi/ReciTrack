@@ -97,16 +97,6 @@ public class Metodos {
     public void PedirPermisoGPS(Activity view) {
 
         /*
-        * Para la Android 7  menor
-        * */
-
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N){
-
-            //IniciarServicioTracking();
-        }
-
-        /*
         * Para la Android 7 al 9
         * */
 
