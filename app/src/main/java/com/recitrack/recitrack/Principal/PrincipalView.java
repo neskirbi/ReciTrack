@@ -88,6 +88,7 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     Context context;
     Dialog dialog;
 
+    TextView detalle;
 
 
     private SensorManager sensorManager;
@@ -115,6 +116,7 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
         context=this;
         metodos=new Metodos(context);
         principalPresenter= new PrincipalPresenter(this,context);
+        detalle=findViewById(R.id.detalle);
         setSupportActionBar(binding.appBarMenuView.toolbar);
         /*binding.appBarMenuView.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -315,9 +317,19 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        Log.i("MapClick",marker.getTitle());
+        Log.i("detalle",marker.getTitle());
+        MostrarDetalle(marker.getTitle());
         principalPresenter.NoMoverMapaStop();
         principalPresenter.NoMoverMapa();
         return false;
+    }
+
+    private void MostrarDetalle(String title) {
+        detalle.setText(title);
+        findViewById(R.id.framedetalle).setVisibility(View.VISIBLE);
+    }
+
+    public void OcultarFrame(View view){
+        view.setVisibility(View.GONE);
     }
 }

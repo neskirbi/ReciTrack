@@ -35,6 +35,7 @@ public interface Principal {
         void NoMoverMapa();
 
         void NoMoverMapaStop();
+
     }
 
     interface PrincipalInteractor{

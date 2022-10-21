@@ -35,7 +35,9 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.recitrack.recitrack.CostomClass.ListenerFB;
 import com.recitrack.recitrack.Metodos;
+import com.recitrack.recitrack.Model.ModelFireBase;
 import com.recitrack.recitrack.Model.Remision;
 import com.recitrack.recitrack.R;
 
@@ -54,13 +56,10 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
 
     BitmapDescriptor icon,iconobra;
-    ArrayList<String> ids = new ArrayList<>();
+
+    ArrayList<ModelFireBase> modelFireBase=new ArrayList<>();
 
 
-    ArrayList<MarkerOptions> marcadores=new ArrayList<>();
-    ArrayList<DatabaseReference> references=new ArrayList<>();
-    ArrayList<Listener> listeners=new ArrayList<>();
-    ArrayList<String> descripciones=new ArrayList<>();
     GoogleMap googleMap;
     JSONArray obras=new JSONArray();
     int pantallaw=0,pantallah= 0;
@@ -178,45 +177,51 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         StrictMode.setThreadPolicy(policy);
         Log.i("QuieroQuitar ","revisar");
         Revisar(datos);
-        int tamini=ids.size();
+
+
         for(int i=0 ; i < datos.length() ; i++){
 
             try {
 
-
-                if(ids.contains(datos.getJSONObject(i).getString("id")) ){
-                    Log.i("QuieroQuitar ","ids saltando"+ids.size()+":"+datos.getJSONObject(i).getString("id"));
+                boolean esta=false;
+                for(int jj=0; jj<modelFireBase.size();jj++){
+                    
+                    if(modelFireBase.get(jj).getId().contains(datos.getJSONObject(i).getString("id")) ){
+                        Log.i("QuieroQuitar ","ids saltando"+modelFireBase.size()+":"+datos.getJSONObject(i).getString("id"));
+                        esta=true;
+                    }
+                }
+                if (esta) {
                     continue;
                 }
+
+
+                
                 if(1==Integer.parseInt( datos.getJSONObject(i).getString("confirmacion"))){
-                    Log.i("QuieroQuitar ","ids nullo"+ids.size()+":"+datos.getJSONObject(i).getString("id"));
-                    ids.add(null);
-                    marcadores.add(null);
-                    descripciones.add(null);
-                    listeners.add(null);
-                    references.add(null);
+                    Log.i("QuieroQuitar ","ids nullo"+ modelFireBase.size()+":"+datos.getJSONObject(i).getString("id"));
+
+
                     continue;
 
                 }
-                Log.i("QuieroQuitar ","Agrega ids "+ids.size()+":"+datos.getJSONObject(i).getString("id"));
+                Log.i("QuieroQuitar ","Agrega ids "+modelFireBase.size()+":"+datos.getJSONObject(i).getString("id"));
 
                 Notificar("Pedido en Camino",datos.getJSONObject(i).getString("descripcion")+"\n"+datos.getJSONObject(i).getString("obra_domicilio"));
-                ids.add(datos.getJSONObject(i).getString("id"));
-                marcadores.add(null);
-                descripciones.add(datos.getJSONObject(i).getString("descripcion"));
+
+
 
 
                 String Tema="Remisiones/Tracking/"+datos.getJSONObject(i).getString("id");
                 Log.i("Localizando ","Tema:"+"Remisiones/Tracking/"+datos.getJSONObject(i).getString("id"));
                 FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
                 DatabaseReference databaseReference = firebaseDatabase.getReference(Tema);//Sala de chat
-                references.add(databaseReference);
-                Listener listener;
 
-                listener=new Listener() {
+                ListenerFB listener;
+
+                listener=new ListenerFB() {
                     public MarkerOptions marker=new MarkerOptions().position(new LatLng(0.0,0.0))
                             .draggable(true)
-                            .title("remision.getProducto()")
+                            .title("")
 
                             // below line is use to add custom marker on our map.
                             .icon(icon);
@@ -235,7 +240,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
                         Log.i("Marcador",remision.getProducto());
                         marker.position(posicion);
-                        marker.title(remision.getProducto());
+                        marker.title(remision.getObra()+'\n'+remision.getProducto());
 
                         descripcion=remision.getProducto();
                         if(Primera){
@@ -244,17 +249,12 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                         }else{
                             markert.setPosition(posicion);
                         }
-
-                        for(int ii = 0 ; ii< ids.size() ;ii++){
-                            if(remision.getId().equals(ids.get(ii))){
-                                marcadores.remove(ii);
-                                marcadores.add(ii,marker);
-                            }
-
+                        for(int ii = 0 ; ii< modelFireBase.size() ;ii++){
+                           if(remision.getId().equals(modelFireBase.get(ii).getId())){
+                               modelFireBase.get(ii).setMarkerOptions(marker);
+                           }
                         }
-
                     }
-
                     @Override
                     public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
@@ -288,8 +288,11 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                         return descripcion;
                     }
                 };
-                listeners.add(listener);
                 databaseReference.addChildEventListener(listener);
+
+
+                modelFireBase.add(new ModelFireBase(datos.getJSONObject(i).getString("id"),null,databaseReference,listener,datos.getJSONObject(i).getString("descripcion")));
+
                 Log.i("QuieroQuitar","IniciarRastreo:"+datos.getJSONObject(i).getString("id"));
 
             } catch (Exception e) {
@@ -315,21 +318,17 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
             }
         }
 
-        for(int j=ids.size()-1;j>=0;j--){
-            Log.i("QuieroQuitar ","tamanioo:"+ids.size()+" index:"+ j);
-            if(ids.get(j)==null || !temp.contains(ids.get(j))){
-                Log.i("QuieroQuitar ","ids Quitando "+ids.size()+":"+ ids.get(j));
+        for(int j=modelFireBase.size()-1;j>=0;j--){
+            Log.i("QuieroQuitar ","tamanioo:"+modelFireBase.size()+" index:"+ j);
+            if(modelFireBase.get(j).getId()==null || !temp.contains(modelFireBase.get(j).getId())){
+                Log.i("QuieroQuitar ","ids Quitando "+modelFireBase.size()+":"+ modelFireBase.get(j));
                 //NotificaEntega("Entregado",descripciones.get(j));
-                if(references.get(j)!=null && listeners.get(j)!=null){
-                    Notificar("Entrega Completa",listeners.get(j).Descripcion());
-                    listeners.get(j).QuitarMarcador();
-                    references.get(j).removeEventListener(listeners.get(j));
+                if(modelFireBase.get(j).getDatabaseReference()!=null && modelFireBase.get(j).getListenerFB()!=null){
+                    Notificar("Entrega Completa",modelFireBase.get(j).getListenerFB().Descripcion());
+                    modelFireBase.get(j).getListenerFB().QuitarMarcador();
+                    modelFireBase.get(j).getDatabaseReference().removeEventListener(modelFireBase.get(j).getListenerFB());
                 }
-                ids.remove(j);
-                marcadores.remove(j);
-                references.remove(j);
-                listeners.remove(j);
-                descripciones.remove(j);
+                modelFireBase.remove(j);
 
             }
         }
@@ -486,9 +485,9 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
        }
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for(int i=0;i<marcadores.size();i++){
-            if(marcadores.get(i)!=null){
-                builder.include(marcadores.get(i).getPosition());
+        for(int i=0;i<modelFireBase.size();i++){
+            if(modelFireBase.get(i).getMarkerOptions()!=null){
+                builder.include(modelFireBase.get(i).getMarkerOptions().getPosition());
             }
         }
 
@@ -502,7 +501,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         }
 
 
-        if(obras.length()>0 || marcadores.size()>0){
+        if(obras.length()>0 || modelFireBase.size()>0){
             Log.i("Marcando","Lat: "+latp+" lon:"+lonp);
             LatLngBounds bounds = builder.build();
             googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, (int) Math.round(pantallah*0.05)));
@@ -538,47 +537,8 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
         }
 
 
-        for(int i = 0 ; i < marcadores.size() ; i++){
-
-            if( marcadores.get(i)!=null){
-                Log.i("PonerMarcadores","Tam marcadores:"+ marcadores.size()+" lat:"+marcadores.get(i).getPosition().latitude+" lon:"+marcadores.get(i).getPosition().longitude);
-                //googleMap.addMarker(marcadores.get(i));
-                //googleMap.moveCamera(CameraUpdateFactory.newLatLng(marcadores.get(i).getPosition()));
-            }
-        }
+        
     }
 }
 
-abstract class Listener implements ChildEventListener {
-    @Override
-    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
-    }
-
-    @Override
-    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-    }
-
-    @Override
-    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-    }
-
-    @Override
-    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-    }
-
-    @Override
-    public void onCancelled(@NonNull DatabaseError error) {
-
-    }
-
-    public void QuitarMarcador(){}
-
-
-    public String Descripcion(){
-        return null;
-    }
-}
