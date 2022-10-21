@@ -19,15 +19,7 @@
 
 
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/refreshviajes"
-        android:onClick="Refresh"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:src="@drawable/refresh"
-        android:layout_margin="16dp"
-        android:visibility="gone"/>
+
 
     <fragment
         android:id="@+id/nav_host_fragment_content_menu_view"
@@ -59,6 +51,12 @@
         android:layout_height="match_parent"
         android:background="#D33A3A3A"
         android:visibility="gone">
+        <ImageView
+            android:id="@+id/imgdetalle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center_horizontal"
+            />
         <TextView
             android:id="@+id/detalle"
             android:layout_width="300dp"

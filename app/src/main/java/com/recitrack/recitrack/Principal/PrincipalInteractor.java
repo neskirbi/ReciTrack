@@ -132,7 +132,7 @@ public class PrincipalInteractor implements Principal.PrincipalInteractor {
                             Log.i("Remisiones",body.get(0).toString());
                             JSONObject jsonObject=new JSONObject(body.get(0).toString());
                             if(Integer.parseInt(jsonObject.getString("status"))==1){
-
+                                principalPresenter.Error("Viajes Actualizados.");
                                 principalPresenter.IniciarRastreo(jsonObject.getJSONArray("datos"));
 
                             }else{

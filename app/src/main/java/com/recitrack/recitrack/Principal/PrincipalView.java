@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,6 +90,7 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     Dialog dialog;
 
     TextView detalle;
+    ImageView imgdetalle;
 
 
     private SensorManager sensorManager;
@@ -117,6 +119,7 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
         metodos=new Metodos(context);
         principalPresenter= new PrincipalPresenter(this,context);
         detalle=findViewById(R.id.detalle);
+        imgdetalle=findViewById(R.id.imgdetalle);
         setSupportActionBar(binding.appBarMenuView.toolbar);
         /*binding.appBarMenuView.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,8 +190,10 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     }
 
     public void GetRemisiones(View view){
+
         metodos.Vibrar(metodos.VibrarPush());
 
+        Toast.makeText(context, "Descargando Datos...", Toast.LENGTH_SHORT).show();
         principalPresenter.GetRemisiones();
     }
 
@@ -216,6 +221,15 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        switch (id){
+            case R.id.refresh:
+
+                metodos.Vibrar(metodos.VibrarPush());
+
+                Toast.makeText(context, "Descargando Datos...", Toast.LENGTH_SHORT).show();
+                principalPresenter.GetRemisiones();
+                break;
+        }
 
 
 
@@ -318,16 +332,15 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         Log.i("detalle",marker.getTitle());
-        MostrarDetalle(marker.getTitle());
+
+
+        findViewById(R.id.framedetalle).setVisibility(View.VISIBLE);
         principalPresenter.NoMoverMapaStop();
         principalPresenter.NoMoverMapa();
         return false;
     }
 
-    private void MostrarDetalle(String title) {
-        detalle.setText(title);
-        findViewById(R.id.framedetalle).setVisibility(View.VISIBLE);
-    }
+
 
     public void OcultarFrame(View view){
         view.setVisibility(View.GONE);

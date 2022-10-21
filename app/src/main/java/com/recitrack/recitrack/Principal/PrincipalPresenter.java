@@ -162,7 +162,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
     @Override
     public void Error(String msn) {
-
+        principalView.Error(msn);
     }
 
     @Override
@@ -240,7 +240,8 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
 
                         Log.i("Marcador",remision.getProducto());
                         marker.position(posicion);
-                        marker.title(remision.getObra()+'\n'+remision.getProducto());
+                        marker.title(remision.getObra()+'\n'+remision.getProducto()+'\n'+remision.getObra_domicilio());
+
 
                         descripcion=remision.getProducto();
                         if(Primera){
@@ -523,7 +524,7 @@ public class PrincipalPresenter implements Principal.PrincipalPresenter {
                     LatLng obra = null;
                     obra = new LatLng(Double.parseDouble(obras.getJSONObject(i).getString("latitud")), Double.parseDouble(obras.getJSONObject(i).getString("longitud")));
                     MarkerOptions option=new MarkerOptions().position(obra)
-                            .title(obras.getJSONObject(i).getString("obra"))
+                            .title(obras.getJSONObject(i).getString("obra")+"\n"+obras.getJSONObject(i).getString("obra_domicilio"))
                             // below line is use to add custom marker on our map.
                             .icon(iconobra);
                     googleMap.addMarker(option);
