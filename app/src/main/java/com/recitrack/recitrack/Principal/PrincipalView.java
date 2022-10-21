@@ -332,14 +332,12 @@ public class PrincipalView extends AppCompatActivity implements OnMapReadyCallba
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
         Log.i("detalle",marker.getTitle());
-
-
+        detalle.setText(marker.getTitle());
         findViewById(R.id.framedetalle).setVisibility(View.VISIBLE);
         principalPresenter.NoMoverMapaStop();
         principalPresenter.NoMoverMapa();
         return false;
     }
-
 
 
     public void OcultarFrame(View view){

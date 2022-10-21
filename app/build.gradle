@@ -10,8 +10,8 @@ android {
         applicationId "com.recitrack.recitrack"
         minSdk 24
         targetSdk 32
-        versionCode 2
-        versionName "1.2"
+        versionCode 4
+        versionName "1.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "APP_KEY", '"APP-KEY: cefa31bbcb2e11ec81768030496e73b4"'
